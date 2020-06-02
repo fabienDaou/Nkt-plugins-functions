@@ -2,16 +2,13 @@ const jshint = require("jshint").JSHINT;
 const { exec } = require("child_process");
 const fs = require("fs").promises;
 const fsExtra = require("fs-extra");
+const { validateNamePattern, validateNameLength, validateContentType, validateBodyNotEmpty, executeValidators } = require("../shared/validators.js");
 
 const NKTPLUGINS_REPO_PATH = "D:\\local\\Temp";
 
 module.exports = async function (context, req) {
-    const validators = [validateNamePattern, validateNameLength, validateContentType, validateBodyNotEmpty];
-
-    const validationResults = validators.map(validator => validator(req));
-    const validationErrorResults = validationResults.filter(validationResult => validationResult.result === false);
-    const validationErrors = validationErrorResults.map(result => result.error);
-
+    const validators = [validateNamePattern, validateNameLength, req => validateContentType(req, "application/javascript"), validateBodyNotEmpty];
+    const validationErrors = executeValidators(req, validators);
     if (validationErrors.length > 0) {
         const aggregatedValidationErrors = validationErrors.join("\n");
         context.log(`Some validations failed:${aggregatedValidationErrors}`);
@@ -106,45 +103,6 @@ const getRepositoryNameUpdated = (request, context) => {
 
     context.log(`Plugin is going to be commited on ${isPrivate ? "private" : "public"} repository.`);
     return repositoryToUpdate;
-};
-
-const validateBodyNotEmpty = request => {
-    return request.body ?
-        { result: true } :
-        {
-            result: false,
-            error: "Must pass a body in the request."
-        };
-};
-
-const validateContentType = request => {
-    return request.headers["content-type"] === "application/javascript" ?
-        { result: true } :
-        {
-            result: false,
-            error: "ContentType should be application/javascript."
-        };
-};
-
-const validateNamePattern = request => {
-    const lettersAndNumbers = /^[0-9a-zA-Z]+$/;
-    return request.query.name && request.query.name.match(lettersAndNumbers) ?
-        { result: true } :
-        {
-            result: false,
-            error: "Must pass a valid name, only not empty names and a-z, A-Z and 0-9 characters are allowed."
-        };
-};
-
-const validateNameLength = request => {
-    const minNameLength = 2;
-    const maxNameLength = 25;
-    return request.query.name && request.query.name.length >= minNameLength && request.query.name.length <= maxNameLength ?
-        { result: true } :
-        {
-            result: false,
-            error: `Length of plugin name must be in range [${minNameLength}, ${maxNameLength}].`
-        };
 };
 
 const executeCommand = async (command, options) => {

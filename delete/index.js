@@ -1,10 +1,23 @@
 const { exec } = require("child_process");
 const fs = require("fs").promises;
 const fsExtra = require("fs-extra");
+const { validateNamePattern, executeValidators } = require("../shared/validators.js");
 
 const NKTPLUGINS_REPO_PATH = "D:\\local\\Temp";
 
 module.exports = async function (context, req) {
+    const validators = [validateNamePattern];
+    const validationErrors = executeValidators(req, validators);
+    if (validationErrors.length > 0) {
+        const aggregatedValidationErrors = validationErrors.join("\n");
+        context.log(`Some validations failed:${aggregatedValidationErrors}`);
+        context.res = {
+            status: 400,
+            body: aggregatedValidationErrors
+        };
+        return;
+    }
+
     const { name, isPrivate: isPrivateAsString } = req.query;
     await cloneGitRepository(getRepositoryNameUpdated(isPrivateAsString === "true", context));
 
