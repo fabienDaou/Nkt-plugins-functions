@@ -2,7 +2,8 @@ const jshint = require("jshint").JSHINT;
 const { exec } = require("child_process");
 const fs = require("fs").promises;
 const fsExtra = require("fs-extra");
-const { validateNamePattern, validateNameLength, validateContentType, validateBodyNotEmpty, executeValidators } = require("../shared/validators.js");
+const { log } = require("../shared/logger");
+const { validateNamePattern, validateNameLength, validateContentType, validateBodyNotEmpty, executeValidators } = require("../shared/validators");
 
 const NKTPLUGINS_REPO_PATH = "D:\\local\\Temp";
 
@@ -11,7 +12,7 @@ module.exports = async function (context, req) {
     const validationErrors = executeValidators(req, validators);
     if (validationErrors.length > 0) {
         const aggregatedValidationErrors = validationErrors.join("\n");
-        context.log(`Some validations failed:${aggregatedValidationErrors}`);
+        log(context, `Some validations failed:${aggregatedValidationErrors}`);
         context.res = {
             status: 400,
             body: aggregatedValidationErrors
@@ -19,26 +20,26 @@ module.exports = async function (context, req) {
         return;
     }
 
-    context.log("Validating plugin code...");
+    log(context, "Validating plugin code...");
 
     const { body } = req;
     jshint(body, { esversion: 6 });
     if (jshint.errors && jshint.errors.length === 0) {
 
-        context.log("Plugin code validated.");
+        log(context, "Plugin code validated.");
 
         await cloneGitRepository(getRepositoryNameUpdated(req, context));
 
-        context.log("Repository cloned.");
+        log(context, "Repository cloned.");
 
         const { name } = req.query;
         await updatePluginFileContent(name, body, context);
 
-        context.log("Plugin file updated.");
+        log(context, "Plugin file updated.");
 
         await commitAndPushUpdate(name);
 
-        context.log("Plugin commited and pushed.");
+        log(context, "Plugin commited and pushed.");
 
         context.res = {
             status: 200
@@ -63,23 +64,23 @@ const commitAndPushUpdate = async name => {
 const updatePluginFileContent = async (name, content, context) => {
     const filePath = `${NKTPLUGINS_REPO_PATH}\\nktPlugins\\plugins\\${name}.js`;
 
-    context.log("Checking existence of file " + filePath);
+    log(context, "Checking existence of file " + filePath);
 
     if (await fsExtra.pathExists(filePath)) {
-        context.log(`${filePath} exists, removing it...`);
+        log(context, `${filePath} exists, removing it...`);
 
         await fs.unlink(filePath);
 
-        context.log(`${filePath} removed.`);
+        log(context, `${filePath} removed.`);
     }
 
-    context.log(`Writing to ${filePath}...`);
+    log(context, `Writing to ${filePath}...`);
 
     await fsExtra.ensureFile(filePath);
 
     await fs.writeFile(filePath, content);
 
-    context.log("Writing operation done.");
+    log(context, "Writing operation done.");
 };
 
 const cloneGitRepository = async (repositoryName) => {
@@ -101,7 +102,7 @@ const getRepositoryNameUpdated = (request, context) => {
         process.env.PrivateRepositoryName :
         process.env.PublicRepositoryName;
 
-    context.log(`Plugin is going to be commited on ${isPrivate ? "private" : "public"} repository.`);
+    log(context, `Plugin is going to be commited on ${isPrivate ? "private" : "public"} repository.`);
     return repositoryToUpdate;
 };
 

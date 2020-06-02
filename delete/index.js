@@ -1,7 +1,8 @@
 const { exec } = require("child_process");
 const fs = require("fs").promises;
 const fsExtra = require("fs-extra");
-const { validateNamePattern, executeValidators } = require("../shared/validators.js");
+const { log } = require("../shared/logger");
+const { validateNamePattern, executeValidators } = require("../shared/validators");
 
 const NKTPLUGINS_REPO_PATH = "D:\\local\\Temp";
 
@@ -10,7 +11,7 @@ module.exports = async function (context, req) {
     const validationErrors = executeValidators(req, validators);
     if (validationErrors.length > 0) {
         const aggregatedValidationErrors = validationErrors.join("\n");
-        context.log(`Some validations failed:${aggregatedValidationErrors}`);
+        log(context, `Some validations failed:${aggregatedValidationErrors}`);
         context.res = {
             status: 400,
             body: aggregatedValidationErrors
@@ -21,14 +22,14 @@ module.exports = async function (context, req) {
     const { name, isPrivate: isPrivateAsString } = req.query;
     await cloneGitRepository(getRepositoryNameUpdated(isPrivateAsString === "true", context));
 
-    context.log("Repository cloned.");
+    log(context, "Repository cloned.");
 
     const success = await tryDeletePlugin(name, context);
 
     if (success) {
         await commitAndPushUpdate(name);
 
-        context.log("Plugin deleted and pushed.");
+        log(context, "Plugin deleted and pushed.");
 
         context.res = {
             status: 200
@@ -52,16 +53,16 @@ const commitAndPushUpdate = async name => {
 const tryDeletePlugin = async (name, context) => {
     const filePath = `${NKTPLUGINS_REPO_PATH}\\nktPlugins\\plugins\\${name}.js`;
 
-    context.log("Checking existence of file " + filePath);
+    log(context, "Checking existence of file " + filePath);
 
     if (await fsExtra.pathExists(filePath)) {
-        context.log(`${filePath} exists, removing it...`);
+        log(context, `${filePath} exists, removing it...`);
 
         await fs.unlink(filePath);
 
         return true;
     } else {
-        context.log(`Plugin does not exist at ${filePath}.`);
+        log(context, `Plugin does not exist at ${filePath}.`);
         return false;
     }
 };
@@ -82,7 +83,7 @@ const getRepositoryNameUpdated = (isPrivate, context) => {
         process.env.PrivateRepositoryName :
         process.env.PublicRepositoryName;
 
-    context.log(`Plugin is going to be deleted in ${isPrivate ? "private" : "public"} repository.`);
+    log(context, `Plugin is going to be deleted in ${isPrivate ? "private" : "public"} repository.`);
     return repositoryToUpdate;
 };
 

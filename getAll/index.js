@@ -1,4 +1,5 @@
 const got = require("got");
+const { log } = require("../shared/logger");
 
 module.exports = async function (context, req) {
     const accessToken = process.env.NktPluginsPersonalAccessToken;
@@ -9,7 +10,7 @@ module.exports = async function (context, req) {
         }
     });
 
-    context.log("Fetch successful.")
+    log(context, "Fetch successful.")
 
     if (statusCode === 200) {
         const { data } = JSON.parse(body);
