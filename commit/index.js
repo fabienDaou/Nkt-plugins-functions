@@ -13,9 +13,11 @@ module.exports = async function (context, req) {
     const validationErrors = validationErrorResults.map(result => result.error);
 
     if (validationErrors.length > 0) {
+        const aggregatedValidationErrors = validationErrors.join("\n");
+        context.log(`Some validations failed:${aggregatedValidationErrors}`);
         context.res = {
             status: 400,
-            body: validationErrors.join("\n")
+            body: aggregatedValidationErrors
         };
         return;
     }

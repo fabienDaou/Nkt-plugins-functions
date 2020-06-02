@@ -9,6 +9,8 @@ module.exports = async function (context, req) {
         }
     });
 
+    context.log("Fetch successful.")
+
     if (statusCode === 200) {
         const { data } = JSON.parse(body);
         const result = data.search.edges.filter(({ node }) => node.object !== null).map(({ node }) => {
