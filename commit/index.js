@@ -29,7 +29,7 @@ module.exports = async function (context, req) {
     if (jshint.errors && jshint.errors.length === 0) {
 
         context.log("Plugin code validated.");
-        
+
         await cloneGitRepository(getRepositoryNameUpdated(req, context));
 
         context.log("Repository cloned.");
@@ -64,19 +64,21 @@ const commitAndPushUpdate = async name => {
 };
 
 const updatePluginFileContent = async (name, content, context) => {
-    const filePath = NKTPLUGINS_REPO_PATH + "\\nktPlugins\\plugins\\" + name + ".js";
+    const filePath = `${NKTPLUGINS_REPO_PATH}\\nktPlugins\\plugins\\${name}.js`;
 
     context.log("Checking existence of file " + filePath);
 
     if (await fsExtra.pathExists(filePath)) {
-        context.log(filePath + " exists, removing it...");
+        context.log(`${filePath} exists, removing it...`);
 
         await fs.unlink(filePath);
 
-        context.log(filePath + " removed.");
+        context.log(`${filePath} removed.`);
     }
 
-    context.log("Writing to " + filePath + "...");
+    context.log(`Writing to ${filePath}...`);
+
+    await fsExtra.ensureFile(filePath);
 
     await fs.writeFile(filePath, content);
 
