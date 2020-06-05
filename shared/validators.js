@@ -4,6 +4,15 @@ exports.executeValidators = (request, validators) => {
     return validationErrorResults.map(result => result.error);
 };
 
+exports.validateAccessTokenExistence = request => {
+    return request.query.accessToken ?
+        { result: true } :
+        {
+            result: false,
+            error: "Must pass a github access token."
+        };
+};
+
 // Main goal is to prevent path traversal as the name will be used in commands.
 exports.validateNamePattern = request => {
     const lettersAndNumbers = /^[0-9a-zA-Z]+$/;

@@ -2,12 +2,12 @@ const { exec } = require("child_process");
 const fs = require("fs").promises;
 const fsExtra = require("fs-extra");
 const { log } = require("../shared/logger");
-const { validateNamePattern, executeValidators } = require("../shared/validators");
+const { validateNamePattern, validateAccessTokenExistence, executeValidators } = require("../shared/validators");
 
 const NKTPLUGINS_REPO_PATH = "D:\\local\\Temp";
 
 module.exports = async function (context, req) {
-    const validators = [validateNamePattern];
+    const validators = [validateNamePattern, validateAccessTokenExistence];
     const validationErrors = executeValidators(req, validators);
     if (validationErrors.length > 0) {
         const aggregatedValidationErrors = validationErrors.join("\n");
@@ -19,8 +19,8 @@ module.exports = async function (context, req) {
         return;
     }
 
-    const { name, isPrivate: isPrivateAsString } = req.query;
-    await cloneGitRepository(getRepositoryNameUpdated(isPrivateAsString === "true", context));
+    const { name, accessToken, isPrivate: isPrivateAsString } = req.query;
+    await cloneGitRepository(getRepositoryNameUpdated(isPrivateAsString === "true", context), accessToken);
 
     log(context, "Repository cloned.");
 
@@ -67,15 +67,11 @@ const tryDeletePlugin = async (name, context) => {
     }
 };
 
-const cloneGitRepository = async (repositoryName) => {
-    const userEnv = process.env.NktPluginsUserName;
-    const personalAccessTokenEnv = process.env.NktPluginsPersonalAccessToken;
-    const credentials = `${userEnv}:${personalAccessTokenEnv}`;
-
+const cloneGitRepository = async (repositoryName, accessToken) => {
     // ensures there is no lingering repository
     await fsExtra.remove(`${NKTPLUGINS_REPO_PATH}\\nktPlugins`);
 
-    await executeCommand(`git clone -b master https://${credentials}@github.com/fabienDaou/${repositoryName}.git ${NKTPLUGINS_REPO_PATH}\\nktPlugins --depth=1`);
+    await executeCommand(`git clone -b master https://${accessToken}@github.com/fabienDaou/${repositoryName}.git ${NKTPLUGINS_REPO_PATH}\\nktPlugins --depth=1`);
 };
 
 const getRepositoryNameUpdated = (isPrivate, context) => {

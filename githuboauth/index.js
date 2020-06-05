@@ -1,5 +1,4 @@
 const got = require("got");
-const { log } = require("../shared/logger");
 
 module.exports = async function (context, req) {
     const { code } = req.query;
