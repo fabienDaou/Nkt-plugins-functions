@@ -4,12 +4,10 @@
   "description": "",
   "scripts": {
     "start": "func start",
-    "check": "jshint commit/index.js && jshint getAll/index.js"
+    "check": "jshint githuboauth/index.js && jshint getAll/index.js"
   },
   "dependencies": {
-    "fs-extra": "^9.0.0",
-    "got": "^11.2.0",
-    "jshint": "^2.11.1"
+    "got": "^11.2.0"
   },
   "devDependencies": {
     "jshint": "^2.11.1"
