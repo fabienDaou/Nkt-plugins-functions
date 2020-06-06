@@ -7,7 +7,7 @@ module.exports = async function (context, req) {
     const { statusCode, body } = await got.post(graphqlGithub, {
         headers: { "Authorization": `token ${accessToken}` },
         json: {
-            query: "query GetPlugins { search(first: 3, query: \"Nkt-plugins\", type: REPOSITORY) { edges { node { ... on Repository { name isPrivate object(expression: \"master:plugins\") { ... on Tree { entries { name object { ... on Tree { entries { name } } ... on Blob { text oid } } } } } } } } } }"
+            query: "query GetPlugins { search(first: 2, query: \"Nkt-plugins\", type: REPOSITORY) { edges { node { ... on Repository { name isPrivate object(expression: \"master:plugins\") { ... on Tree { entries { name object { ... on Tree { entries { name } } ... on Blob { text oid } } } } } } } } } }"
         }
     });
 
