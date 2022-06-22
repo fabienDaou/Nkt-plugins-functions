@@ -7,7 +7,7 @@
     "check": "jshint githuboauth/index.js && jshint getAll/index.js"
   },
   "dependencies": {
-    "got": "^11.2.0"
+    "got": "^11.8.5"
   },
   "devDependencies": {
     "jshint": "^2.11.1"
